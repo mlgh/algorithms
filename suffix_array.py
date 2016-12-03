@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import suffix_array_ext
 
 def suffix_array_naive(s):
 	"""Naive n^2 log(n)"""
@@ -29,6 +30,9 @@ def counting_sort(arr, key_func, max_key):
 
 def suffix_array_kmr(s):
 	"""Karp Miller Rosenberg prefix doubling O(N*log(N))"""
+
+	if not s:
+		return []
 
 	# Since most probably we won't be using all ASCII symbols, it makes sense to remap characters
 	alphabet = {c: i for (i, c) in enumerate(sorted(set(s)))}
@@ -187,6 +191,16 @@ def suffix_array_ks(s):
 	max_elem = max(arr)
 	result = suffix_array_ks_helper(arr, max_elem)
 	return result
+
+def suffix_array_ks_ext(s):
+	"""C++ implementation of the above"""
+	if not s:
+		return []
+	alphabet = {c: i for (i, c) in enumerate(sorted(set(s)))}
+	arr = [alphabet[c] for c in s]
+	result = suffix_array_ext.suffix_array_ks_helper(arr)
+	return result
+
 
 def lcp_kasai(arr, suf_arr):
 	"""Kasai algorithm to compute lcp"""

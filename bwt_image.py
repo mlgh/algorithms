@@ -1,8 +1,10 @@
 
 import argparse
+import threading
 from PIL import Image
 
-from bwt import bwt, ibwt
+from bwt import ibwt
+from suffix_array_ext import bwt_pixels
 
 def set_end_marker(arr):
 	for i in xrange(len(arr)):
@@ -30,15 +32,17 @@ if __name__ == '__main__':
 
 	# Replace 255 with 254 so that we could apply inverse bwt later
 	if not args.inverse:
-		for channel in channels:
-			set_end_marker(channel)
-		channels = map(bwt, channels)
-	else:
-		# XXX: Rewrite using my ibwt
-		channels = map(lambda ch: map(chr, ch), channels)
-		channels = map(ibwt, channels)
-		channels = map(lambda ch: map(ord, ch), channels)
+		threads = []
 
+		def thread_func(chan_num):
+			channels[chan_num] = bwt_pixels(channels[chan_num])
+
+		for i in xrange(len(channels)):
+			threads.append(threading.Thread(target=thread_func, args=(i,)))
+			threads[-1].start()
+		[t.join() for t in threads]
+	else:
+		channels = [ibwt(channel, 255) for channel in channels]
 	if len(im.mode) == 1:
 		data = channels
 	else:
