@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
 	data = im.getdata()
 	if len(im.mode) == 1:
-		channels = list(data)
+		channels = [list(data)]
 	else:
 		channels = map(list, zip(*data))
 
