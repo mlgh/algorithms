@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import suffix_array_ext
+#import suffix_array_ext
 
 def suffix_array_naive(s):
 	"""Naive n^2 log(n)"""

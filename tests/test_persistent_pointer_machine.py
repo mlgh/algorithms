@@ -1,7 +1,7 @@
 
 import pytest
 import random
-from persistent_pointer_machine import *
+from algolib.persistent_pointer_machine import *
 
 class TestNode(object):
     @pytest.fixture
