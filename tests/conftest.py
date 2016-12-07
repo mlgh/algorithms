@@ -11,6 +11,7 @@ def gen_fixture_params():
 		yield 'aaabbbcccaabbccabc', 'cyclic_shortening'
 		yield 'abcdef'
 		yield 'a' * 10, 'ten_chars'
+		yield 'abac' * 2 + 'abad' + 'aaab' * 2 + 'aaad', 'decreasing_repeating'
 	params = []
 	ids = []
 	for res in gen():
