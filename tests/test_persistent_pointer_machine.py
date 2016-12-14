@@ -1,6 +1,7 @@
 
 import pytest
 import random
+import collections
 from algolib.persistent_pointer_machine import *
 
 class TestNode(object):
@@ -35,23 +36,24 @@ class TestNode(object):
         assert exc_info.value[0] == 'test2'
 
     def test_overflow_mods(self, node):
-        rev1 = latest(node).set_field('test1', 'value1')
-        rev2 = latest(node).set_field('test1', 'value2')
-        rev3 = latest(node).set_field('test1', 'value3')
-        rev4 = latest(node).set_field('test1', 'value4')
+        with NodeWatcher(node) as w:
+            rev1 = w.node.set_field('test1', 'value1')
+            rev2 = w.node.set_field('test1', 'value2')
+            rev3 = w.node.set_field('test1', 'value3')
+            rev4 = w.node.set_field('test1', 'value4')
 
         assert rev4.node.get_field('test1', rev4.version) == 'value4'
         assert rev1.node.get_field('test1', rev1.version) == 'value1'
-        assert rev1.node.next_node is not None
 
     def test_linking(self, node_factory):
         node1 = node_factory("node1")
         node2 = node_factory("node2")
-        latest(node1).set_field('friend', node2)
-        latest(node2).set_field('test1', 'value1')
-        latest(node2).set_field('test1', 'value2')
-        rev3 = latest(node2).set_field('test1', 'value3')
-        linked_node_2 = latest(node1).get_field('friend', rev3.version)
+        with NodeWatcher(node1) as w1, NodeWatcher(node2) as w2:
+            w1.node.set_field('friend', w2.node)
+            w2.node.set_field('test1', 'value1')
+            w2.node.set_field('test1', 'value2')
+            rev3 = w2.node.set_field('test1', 'value3')
+            linked_node_2 = w1.node.get_field('friend', rev3.version)
 
         assert linked_node_2.get_field('test1', rev3.version) == 'value3'
 
@@ -60,15 +62,17 @@ class TestNode(object):
         node2 = node_factory()
         node3 = node_factory()
 
-        latest(node1).set_field('friend', latest(node2))
-        latest(node1).set_field('friend', latest(node3))
-        # Oops, ref2 still has backlink to ref1
-        latest(node2).set_field('test1', 'value1')
-        latest(node2).set_field('test2', 'value2')
-        latest(node2).set_field('test3', 'value3')
-        last_rev = latest(node3).set_field('test4', 'value4')
+        with NodeWatcher(node1) as w1, NodeWatcher(node2) as w2, NodeWatcher(node3) as w3:
 
-        friend = latest(node1).get_field('friend', last_rev.version)
+            w1.node.set_field('friend', w2.node)
+            w1.node.set_field('friend', w3.node)
+            # Oops, ref2 still has backlink to ref1
+            w2.node.set_field('test1', 'value1')
+            w2.node.set_field('test2', 'value2')
+            w2.node.set_field('test3', 'value3')
+            last_rev = w3.node.set_field('test4', 'value4')
+
+            friend = w1.node.get_field('friend', last_rev.version)
         assert friend.get_field('test4', last_rev.version) == 'value4'
 
 
@@ -76,7 +80,7 @@ class TestNode(object):
 class TestLinkedList(object):
     @pytest.fixture
     def common(self):
-        return Common(max_links=10)
+        return Common(max_links=2, max_mods=10)
 
     @pytest.fixture
     def lst(self, common):
