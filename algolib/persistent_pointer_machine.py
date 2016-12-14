@@ -134,13 +134,14 @@ class Node(object):
         if self.is_frozen:
             raise ValueError("Node is frozen", self)
 
+        # Remove old link
         link_idx = self.find_link(field)
-
         if link_idx is not None:
             link = self.links[link_idx]
             link.to_node.backlinks[link.backlink_idx] = None
             self.links[link_idx] = None
 
+        # Add new link
         if isinstance(value, Node):
             backlink_idx = value.add_backlink(self, field)
             link = Link(to_node=value, by_field=field, backlink_idx=backlink_idx)
